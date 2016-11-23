@@ -1,6 +1,37 @@
-# trireme-cumulus
+# Simplified Networking for Containers and Kubernetes
 
-We describe some basic configuration for enabling host routing to advertise docker networks.
+The basic Kubernetes networking model assumes a very simple network configuration. Every Kubernetes node 
+(minion) is configured with one IP address for all management related functions and as well as a routable
+subnet (for example a /24) where all containers or Kubernetes PODs will get an IP address from. This 
+simple architecture minimizes the requirements from the physical infrastructure. In a leaf/spine data 
+center architecture, leaf switches need routes to each of the container subnets with a next-hop equal
+to the corresponding server IP. Local routing inside very host can minimize all other functions. 
+
+The following picture illustrates this architecture. We show two servers attached to leaf switch. The 
+server interfaces have IP addresses 10.1.1.2 and 10.1.1.3 (possibly distributed even through DHCP
+when they boot). The leaf switch has an IP address 10.1.1.1. In each of the hosts there is a network
+associated with container (10.1.2.0/24 and 10.1.3.0/24) and all containers instantiated in the host 
+get an IP address out of these container subnets. 
+
+In order to completely automate the deployment of such an infrastructure and minimize the configuration
+requirements one has to achieve the following:
+
+1. When a new server is started under a leaf switch it should automatically get an IP address. This can 
+be achieved by DHCP or using unumbered interfaces as recommended in https://cumulusnetworks.com/routing-on-the-host/
+2. Every new server must be associated with a container network. This is part of the server configuratio
+and we will describe how it can be done in the next section.
+3. When a server is started, it should automatically advertise its container network to the leaf switch
+and the rest of the infrastructure minimizing human intervention. Although this can be automated 
+with static routes at the leaf switches, it can also be implemented with a routing protocol. 
+The easiest way to achieve this is by  running a routing protocol on every server and advertising the
+corresponding container route to the  leaf switch. 
+
+Note that in the above architecture there are no convergence issues that one has to worry about. The only
+routes advertised to the network are /24 subnets (one per server) and one could do implement aggregation
+on every leaf switch and advertise much larger subnets to the core network. There is *no route advertisement* 
+for every container. No L2 networks and no VLANs. 
+
+In the following section we describe some basic configurations for enabling host routing to advertise docker networks.
 
 # Host Configuration
 
