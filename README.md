@@ -13,6 +13,8 @@ when they boot). The leaf switch has an IP address 10.1.1.1. In each of the host
 associated with container (10.1.2.0/24 and 10.1.3.0/24) and all containers instantiated in the host 
 get an IP address out of these container subnets. 
 
+![](img/1.png)
+
 In order to completely automate the deployment of such an infrastructure and minimize the configuration
 requirements one has to achieve the following:
 
