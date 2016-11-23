@@ -135,7 +135,7 @@ can choose to use the Cumulus Quagga implementation without a docker container.
 First start the Cumulus Router 
 
 ```bash 
-docker run -t -d --net=host --privileged --name Quagga cumulusnetworks/quagga:denial-latest
+docker run -t -d --net=host --privileged --name Quagga cumulusnetworks/quagga:xenial-latest
 ```
 
 Note, that the router needs to start in privileged mode in order to be able to modify the routing tables. 
