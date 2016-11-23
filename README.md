@@ -80,7 +80,7 @@ In the above example the configuration file is in /lib/systemd/system/docker.ser
 You can edit the file and replace the ExecStart line with the following
 
 ```bash
-/usr/bin/dockerd -H fd:// --userland-proxy=false --bip=10.1.1.1/24
+/usr/bin/dockerd -H fd:// --userland-proxy=false --bip=10.1.2.1/24
 ```
 
 Restart your docker daemon 
@@ -97,7 +97,7 @@ the address above
 user@ubuntu:~$ ip add show docker0
 5: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default
     link/ether 02:42:61:dc:8b:ab brd ff:ff:ff:ff:ff:ff
-    inet 10.1.1.1/24 scope global docker0
+    inet 10.1.2.1/24 scope global docker0
        valid_lft forever preferred_lft forever
     inet6 fe80::42:61ff:fedc:8bab/64 scope link
        valid_lft forever preferred_lft forever
@@ -110,8 +110,8 @@ add a new bridge in the host and give it the specified IP address
 
 ```bash
 docker network create  \
-           --gateway 10.1.1.1 \
-           --subnet 10.1.1.0/24 \
+           --gateway 10.1.2.1 \
+           --subnet 10.1.2.0/24 \
            --driver bridge \
            -o "com.docker.network.bridge.enable_ip_masquerade=false”  containers
 ```
@@ -139,8 +139,8 @@ docker run -t -d --net=host --privileged --name Quagga cumulusnetworks/quagga:de
 ```
 
 Note, that the router needs to start in privileged mode in order to be able to modify the routing tables. 
-In this example, we will assume that the network interface of the host has some IP address 10.2.1.2 
-and that the corresponding router interface is 10.2.1.1. One can use techniques with unumbered interfaces
+In this example, we will assume that the network interface of the host has some IP address 10.1.1.2 
+and that the corresponding router interface is 10.1.1.1. One can use techniques with unumbered interfaces
 and DHCP to distribute this IP to the hosts. 
 
 We first need to start the Quagga services
@@ -153,15 +153,15 @@ We then need to configure BGP to communicate with the ToR switch
 docker exec Quagga /usr/bin/vtysh  \
        -c 'configure t' \
        -c 'router bgp 1000' \
-       -c 'neighbor 10.2.1.1 remote-as 10000' 
+       -c 'neighbor 10.1.1.1 remote-as 10000' 
        -c 'address-family ipv4 unicast' 
-       -c 'network 10.1.1.0/24' 
-       -c 'neighbor 10.2.1.1 activate’
+       -c 'network 10.1.2.0/24' 
+       -c 'neighbor 10.1.1.1 activate’
 ```
 In the above configureation we did the following:
 * Started BGP on the AS 1000 for IPv4
-* Connected to the neighbor with IP 10.2.1.1
-* Advertised to the neighbor the container route 10.1.1.0/24
+* Connected to the neighbor with IP 10.1.1.1
+* Advertised to the neighbor the container route 10.1.2.0/24
 * Activated the communication
 
 At this point the configuration of the host is complete.
@@ -175,9 +175,9 @@ The configuration is
 ```bash
 configure t
 router bgp 10000
-neighbor 10.2.1.2 remote-as 1000
+neighbor 10.1.1.2 remote-as 1000
 address-family ipv4 unicast
-neighbor 10.2.1.2 activate
+neighbor 10.1.1.2 activate
 exit 
 exit
 ```
