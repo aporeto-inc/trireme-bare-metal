@@ -189,7 +189,7 @@ the host router will only advertise this network if at least one container is at
 verify, simply create a container 
 
 ```bash
-docker run --net=containers -d --name web nginx 
+docker run  -d --name web nginx 
 docker inspect web 
 ```
 
