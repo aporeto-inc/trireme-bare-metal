@@ -35,6 +35,15 @@ for every container. No L2 networks and no VLANs.
 
 In the following section we describe some basic configurations for enabling host routing to advertise docker networks.
 
+## Isolation with Trireme
+The biggest drawback of the above architecture is that there is no network isolation. Every container or POD can
+communicate with any other container. One can try to isolate containers with access control lists or potentially
+VLANs but then the network configuration becomes complex or there is a need for shared state between the 
+end-hosts that needs to be propagated. This is exactly where Trireme comes in. Trireme was designed to decouple
+security from network. By installing the Trireme library on each host, one will be able to achieve isolation
+while keeping the network simple as described in this architecture.
+
+
 # Host Configuration
 
 ## Configure Docker 
