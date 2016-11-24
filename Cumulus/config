@@ -1,11 +1,30 @@
+log file /var/log/quagga/quagga.log
+log timestamp precision 6
+username cumulus nopassword
+!
+interface swp1
+ ipv6 nd ra-interval 10
+ no ipv6 nd suppress-ra
+!
+interface swp2
+ ipv6 nd ra-interval 10
+ no ipv6 nd suppress-ra
+!
+interface swp3
+ ipv6 nd ra-interval 10
+ no ipv6 nd suppress-ra
+!
 router bgp 10000
-  neighbor 20.1.1.2 remote-as 10000
-  neighbor 20.1.1.6 remote-as 10000
-  neighbor 20.1.1.10 remote-as 10000
-address-family ipv4 unicast
-  redistribute connected 
-  neighbor 20.1.1.2 route-reflector-client
-  neighbor 20.1.1.2 route-reflector-client
-  neighbor 20.1.1.2 route-reflector-client
-exit-address-family
-  
+ neighbor swp1 interface remote-as 10000
+ neighbor swp2 interface remote-as 10000
+ neighbor swp3 interface remote-as 10000
+ !
+ address-family ipv4 unicast
+  redistribute connected
+  neighbor swp1 route-reflector-client
+  neighbor swp2 route-reflector-client
+  neighbor swp3 route-reflector-client
+ exit-address-family
+!
+line vty
+!

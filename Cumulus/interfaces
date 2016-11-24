@@ -1,0 +1,26 @@
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*.intf
+
+# The loopback network interface
+auto lo
+  iface lo inet loopback
+  address 30.1.1.1/32
+
+# The primary network interface
+auto eth0
+  iface eth0 inet dhcp
+
+auto swp1
+  iface swp1
+  address 20.1.1.1/30
+
+auto swp2 
+  iface swp2 
+  address 20.1.1.5/30
+
+auto swp3
+  iface swp3
+  address 20.1.1.9/30
+
