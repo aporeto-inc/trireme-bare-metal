@@ -1,0 +1,11 @@
+router bgp 10000
+  neighbor 20.1.1.2 remote-as 10000
+  neighbor 20.1.1.6 remote-as 10000
+  neighbor 20.1.1.10 remote-as 10000
+address-family ipv4 unicast
+  redistribute connected 
+  neighbor 20.1.1.2 route-reflector-client
+  neighbor 20.1.1.2 route-reflector-client
+  neighbor 20.1.1.2 route-reflector-client
+exit-address-family
+  
