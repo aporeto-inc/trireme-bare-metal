@@ -1,0 +1,24 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    app: quagga
+  name: router
+spec:
+  template:
+    metadata:
+      labels:
+        app: quagga
+    spec:
+      hostNetwork: true
+      containers:
+        -  name: router
+           image: aporeto/trireme-cumulus:latest
+           command: ["/opt/trireme/start.sh"]
+           env:
+             - name: AS_NUMBER
+               value: "10000"
+             - name: ROUTER_INTERFACE
+               value: enp0s9
+           securityContext:
+             privileged: true
