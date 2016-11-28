@@ -43,10 +43,13 @@ end-hosts that needs to be propagated. This is exactly where Trireme comes in. T
 security from network. By installing the Trireme library on each host, one will be able to achieve isolation
 while keeping the network simple as described in this architecture.
 
+We will show two different methods to achieve these goals. One will be semi-manual using docker and the other one
+will be completely automated through Kubernetes.
 
-# Host Configuration
+# Docker Based Configuration
+## Host Configuration 
 
-## Configure Docker 
+### Configure Docker 
 
 This is an *one-time* configuration that is needed in every host. Essentially we need to configure
 a routable subnet where all the containers will be attached to. Note that there is only one restriction
@@ -54,7 +57,7 @@ on what is the subnet IP. Since we will use routing to advertise the subnet it h
 unique in your data center network. Note also that the advertisement will only happen when a host 
 is activated and not every time a new container is added or removed in the data center. 
 
-### Using the daemon configuration 
+#### Option 1: Using the daemon configuration 
 
 The host must be configured with the bridge that all Docker containers will be activated on. This can be done
 either by creating a new network using Docker or by simply starting the docker daemon with the 
@@ -103,7 +106,7 @@ user@ubuntu:~$ ip add show docker0
        valid_lft forever preferred_lft forever
 ```
 
-### Using Docker libnetwork 
+#### Using Docker libnetwork 
 
 Alternatively, you can create a new network using the docker libnetwork capability. This will essentially
 add a new bridge in the host and give it the specified IP address
@@ -123,7 +126,7 @@ that you start your containers with the "--net" parameter. As an example
 docker run --net=containers -d nginx 
 ```
 
-## Configure Host Routing 
+### Configure Host Routing 
 We will use the techniques described in https://cumulusnetworks.com/routing-on-the-host/ to create a simple
 example. More complex routing configurations can be obviously implemented.
 
@@ -139,34 +142,34 @@ docker run -t -d --net=host --privileged --name Quagga cumulusnetworks/quagga:xe
 ```
 
 Note, that the router needs to start in privileged mode in order to be able to modify the routing tables. 
-In this example, we will assume that the network interface of the host has some IP address 10.1.1.2 
-and that the corresponding router interface is 10.1.1.1. One can use techniques with unumbered interfaces
-and DHCP to distribute this IP to the hosts. 
+In this example, we will assume that the network interface of the host that will be used for 
+datapath functions is enp0s9. 
 
 We first need to start the Quagga services
 ```bash
 docker exec Quagga /usr/lib/quagga/quagga restart
 ```
 
-We then need to configure BGP to communicate with the ToR switch
+We then need to configure BGP to communicate with the Leaf Switch. In this example we use iBGP with an AS of 10000.
 ```bash 
 docker exec Quagga /usr/bin/vtysh  \
        -c 'configure t' \
-       -c 'router bgp 1000' \
-       -c 'neighbor 10.1.1.1 remote-as 10000' 
+       -c 'router bgp 10000' \
+       -c 'neighbor enp0s9 interface' \
+       -c 'neighbor enp0s9 remote-as 10000' 
        -c 'address-family ipv4 unicast' 
-       -c 'network 10.1.2.0/24' 
-       -c 'neighbor 10.1.1.1 activate’
+       -c 'redistribute connected' 
+       -c 'neighbor enp0s9 activate’
 ```
 In the above configureation we did the following:
-* Started BGP on the AS 1000 for IPv4
-* Connected to the neighbor with IP 10.1.1.1
-* Advertised to the neighbor the container route 10.1.2.0/24
+* Started BGP on the AS 10000 for IPv4
+* Connected to the neighbor through the enp0s9 interface
+* Advertised to the neighbor the connected interfaces that includes the bridge above.
 * Activated the communication
 
 At this point the configuration of the host is complete.
 
-# Configure the Leaf Switch 
+## Configure the Leaf Switch 
 
 Configuring the Leaf Switch is straightforward. We assume that the interface IP is 10.2.1.1. Note that we could 
 use a loopback IP to connect the BGP processes as well. 
@@ -175,15 +178,17 @@ The configuration is
 ```bash
 configure t
 router bgp 10000
-neighbor 10.1.1.2 remote-as 1000
+neighbor swp1 interface
+neighbor swp1 remote-as 10000
 address-family ipv4 unicast
-neighbor 10.1.1.2 activate
+neighbor swp1 route-server-client
+neighbor swp1 activate
 exit 
 exit
 ```
 Essentially its a simple symetrical communication. 
 
-# Operation
+## Operation
 If you look at the routes advertised to the Leaf Switch you will notice that the container network is not there. Indeed,
 the host router will only advertise this network if at least one container is attached to the network. In order to 
 verify, simply create a container 
@@ -196,3 +201,13 @@ docker inspect web
 From the docker inspect command get the IP address of the container and go to your 
 Leaf switch and you can now ping the container. You should be able to simply access the 
 nginx web server from anywhere in your data center.
+
+
+# Automated Configuration Through Kubernetes
+
+The procedure above includes some manual steps :
+1. Assign IP addresses to the Docker bridge
+2. Activate the routing instances in every host 
+
+We can actually use the Kubernetes capabilities to completely automate these functions and minimize any manual intervention.
+See the instructions in [Kubernetes Configuration](Kubernetes.md)
