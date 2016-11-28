@@ -2,14 +2,26 @@
 
 In this tutorial we will describe how on can setup a large bare metal Kubernetes cluster using simple layer 3 networking 
 and achieving strong isolation with Trireme and the kubernetes network policy. The setup can be repeated 
-in a laptop environment using VirtualBox 
+in a laptop environment using VirtualBox. We assume a topology as in the picture below. 
 
-# Setup Information
+![](img/img2.png)
 
-We have three hosts connected through a L3 router. For our experiments we use the Cumulus VX that is a virtual machine
+Three hosts connected to a leaf switch. In a VirtualBox environment use Internal Network interfaces to create intnet1, intnet2, intnet3. 
+Then attach hosts and leaf switch VM in these interfaces. An example configuration is shown below. 
+
+![](img/img3.png)
+
+We are trying to minimize all manual configurations. For this reason the Leaf Switch will also operate as a DHCP 
+server (or DHCP relay), and it will automatically allocate IP addresses to all the interfaces. This is the only 
+configuration that we need to do. Once the hosts boot and get an IP address, the Kubernetes master will start
+and take care of all other configurations. 
+
+For our experiments we use the Cumulus VX that is a virtual machine
 with all router capabilities. The three hosts are directly attached to the router over a /30 interface, and we have
 enabled DHCP in the router so that the hosts can automatically get their IP addresses. The DHCP configuration for
 the Cumulus router can be found in Cumulus/dhcpd.conf. 
+
+# Host Configuration
 
 The configuration on every host is bare minimum. Make sure that Docker is running and that the host has network
 connectivity. When the hosts come up they should be able to get an IP address through the Cumulus router and they
@@ -60,8 +72,9 @@ In order to deploy the Quagga router we have created a simple Kubernetes daemons
 kubectl create -f Kubernetes/router.yaml
 ```
 
-The daemonset will deploy an instance of the router in every host advertise the routes. You should now be able to ping 
-any of local bridges from any host. Note, that the bridges will only be created after you start the first deployment.
+The daemonset will deploy an instance of the router in every host advertise the routes. 
+
+> NOTE: The bridges will only be created after you start the first deployment. 
 
 Try to create a nginx deployment 
 
@@ -83,7 +96,7 @@ kubectl desribe pod my-nginx-2723453542-ee9ib | grep IP
 IP:		10.20.1.118
 ```
 
-You should now be able to access this POD with "curl http://10.20.1.118"
+You should now be able to access this POD with "curl http://10.20.1.118" from any of the other hosts. 
 
 # Isolation with Trireme 
 As described above, each Pod in the Kubernetes cluster gets a different IP address and all Pods can commmunicate with each
