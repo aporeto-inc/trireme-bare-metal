@@ -106,7 +106,15 @@ the mechanism to isolate Pods. However, there is no direct implementation. The T
 library to be used for isolation. 
 
 You can follow the instructions in https://github.com/aporeto-inc/trireme-kubernetes/tree/master/deployment to deploy
-the Trireme integration. Basically, the only think you need to do is deploy an additional daemonset 
+the Trireme integration. Basically, the only think you need to do is deploy an additional daemonset.
+
+```bash
+# Create a shared secret 
+Kubernetes/createPSK.sh
+# Deploy Trireme with a shared secret implementation as a daemonset
+kubectl create -f Kubernetes/daemonsetPSK.yaml
+```
+
 
 # Conclusion
 What we demonstrated is a completely automated way to deploy a large scale Kubernetes cluster in bare metal servers
