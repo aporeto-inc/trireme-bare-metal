@@ -19,7 +19,8 @@ and take care of all other configurations.
 For our experiments we use the Cumulus VX that is a virtual machine
 with all router capabilities. The three hosts are directly attached to the router over a /30 interface, and we have
 enabled DHCP in the router so that the hosts can automatically get their IP addresses. The DHCP configuration for
-the Cumulus router can be found in Cumulus/dhcpd.conf. 
+the Cumulus router can be found in [dhcpd.conf](Cumulus/dhcpd.conf). The full configuration of the Cumulus Leaf switch 
+is captured in [config](Cumulus/config) and [/etc/network/interfaces](Cumulus/interfaces).
 
 # Host Configuration
 
